@@ -2,7 +2,7 @@
 local gameModules = {
     [155615604] = function()
         print("prison life detected")
-        -- Dein Code hier
+        loadstring(game:HttpGet("hier link"))()
     end,
 
     [222222222] = function()
