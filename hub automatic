@@ -1,0 +1,62 @@
+-- Modulare Konfiguration für 10 verschiedene Places
+local gameModules = {
+    [155615604] = function()
+        print("prison life detected")
+        -- Dein Code hier
+    end,
+
+    [222222222] = function()
+        print("Script für Place 2 aktiv")
+        -- Dein Code hier
+    end,
+
+    [333333333] = function()
+        print("Script für Place 3 aktiv")
+        -- Dein Code hier
+    end,
+
+    [444444444] = function()
+        print("Script für Place 4 aktiv")
+        -- Dein Code hier
+    end,
+
+    [555555555] = function()
+        print("Script für Place 5 aktiv")
+        -- Dein Code hier
+    end,
+
+    [666666666] = function()
+        print("Script für Place 6 aktiv")
+        -- Dein Code hier
+    end,
+
+    [777777777] = function()
+        print("Script für Place 7 aktiv")
+        -- Dein Code hier
+    end,
+
+    [888888888] = function()
+        print("Script für Place 8 aktiv")
+        -- Dein Code hier
+    end,
+
+    [999999999] = function()
+        print("Script für Place 9 aktiv")
+        -- Dein Code hier
+    end,
+
+    [101010101] = function()
+        print("Script für Place 10 aktiv")
+        -- Dein Code hier
+    end,
+}
+
+-- Logik zum Ausführen
+local currentId = game.PlaceId
+
+if gameModules[currentId] then
+    -- Führt die Funktion aus, die zur ID gehört
+    gameModules[currentId]()
+else
+    print("Diese Place ID (" .. currentId .. ") ist nicht ferfügbar")
+end
