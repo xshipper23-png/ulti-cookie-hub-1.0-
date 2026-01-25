@@ -2,7 +2,7 @@
 local gameModules = {
     [155615604] = function()
         print("prison life detected")
-        loadstring(game:HttpGet("hier link"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/xshipper23-png/ulti-cookie-hub-1.0-/refs/heads/main/prison%20life"))()
     end,
 
     [222222222] = function()
