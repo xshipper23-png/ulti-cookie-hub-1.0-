@@ -17,10 +17,10 @@ if game.PlaceId ~= ERLAUBTE_ID then
 	return -- Dieser Befehl beendet das Script sofort an dieser Stelle!
 end
 
--- ==========================================
--- ALLES UNTERHALB WIRD NUR AUSGEFÜHRT, 
--- WENN DIE ID RICHTIG IST
--- ==========================================
+--- ==========================================
+--- ALLES UNTERHALB WIRD NUR AUSGEFÜHRT, 
+--- WENN DIE ID RICHTIG IST
+--- ==========================================
 
 print("✅ conected wait for full load")
 
