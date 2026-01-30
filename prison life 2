@@ -1,1 +1,1593 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
+-- Trage hier deine richtige Place ID ein
+local ERLAUBTE_ID = 155615604
+
+-- Prüfung: Wenn die ID NICHT (not) übereinstimmt
+if game.PlaceId ~= ERLAUBTE_ID then
+	warn("❌ wrong game!!.")
+    
+    Rayfield:Notify({
+   Title = "❌wrong game❌",
+   Content = "join the right game or its a bug",
+   Duration = 7,
+   Image = nil,
+})
+    
+	return -- Dieser Befehl beendet das Script sofort an dieser Stelle!
+end
+
+--- ==========================================
+--- ALLES UNTERHALB WIRD NUR AUSGEFÜHRT, 
+--- WENN DIE ID RICHTIG IST
+--- ==========================================
+
+print("✅ conected wait for full load")
+
+-- Hier kommt dein eigentlicher Code hin:
+local function meinSpielSystem()
+	print("game exploit loading")
+end
+
+meinSpielSystem()
+
+local Window = Rayfield:CreateWindow({
+   Name = "PRISON LIFE",
+   Icon = 0, -- Icon in Topbar. Can use Lucide Icons (string) or Roblox Image (number). 0 to use no icon (default).
+   LoadingTitle = "prison life best script (BETA)",
+   LoadingSubtitle = "by ulti cookie",
+   ShowText = "ulti cookie", -- for mobile users to unhide rayfield, change if you'd like
+   Theme = "Default", -- Check https://docs.sirius.menu/rayfield/configuration/themes
+
+   ToggleUIKeybind = "g", -- The keybind to toggle the UI visibility (string like "K" or Enum.KeyCode)
+
+   DisableRayfieldPrompts = true,
+   DisableBuildWarnings = false, -- Prevents Rayfield from warning when the script has a version mismatch with the interface
+
+   ConfigurationSaving = {
+      Enabled = false,
+      FolderName = nil, -- Create a custom folder for your hub/game
+      FileName = "Big Hub"
+   },
+
+   Discord = {
+      Enabled = false, -- Prompt the user to join your Discord server if their executor supports it
+      Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ ABCD would be ABCD
+      RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+   },
+
+   KeySystem = true, -- Set this to true to use our key system
+   KeySettings = {
+      Title = "your varifacation",
+      Subtitle = "varifacation",
+      Note = "on discord is the key is provided", -- Use this to tell the user how to get a key
+      FileName = "loading", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+      SaveKey = false, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+      GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+      Key = {"685685nf6644","vip37936j4h3cz555","0404"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+   }
+})
+
+local tpTab = Window:CreateTab("teleports", nil) -- Title, Image
+local giveTab = Window:CreateTab("give", nil) -- Title, Image
+local plTab = Window:CreateTab("player settings", nil) -- Title, Image
+local stTab = Window:CreateTab("usefull stuff", nil) -- Title, Image
+local comTab = Window:CreateTab("combat", nil) -- Title, Image
+local clientTab = Window:CreateTab("client sided", nil) -- Title, Image
+local globalTab = Window:CreateTab("global", nil) -- Title, Image
+local newlTab = Window:CreateTab("info/updates", nil) -- Title, Image
+
+local workspace = game:GetService("Workspace")
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+
+-- --- TRACKER VARIABLES ---
+local m9Count = 0
+local keyCardCount = 0
+local firstM9 = nil
+local firstKeyCard = nil
+local notifyEnabled = false 
+
+-- --- GUI ELEMENTS IN GIVETAB ---
+
+giveTab:CreateSection("Item Tracker Settings")
+
+giveTab:CreateToggle({
+   Name = "Notify if found",
+   CurrentValue = false,
+   Flag = "give_tracker_notify",
+   Callback = function(Value)
+      notifyEnabled = Value
+   end,
+})
+
+giveTab:CreateSection("Item Tracker Display")
+
+local m9Label = giveTab:CreateLabel("M9: Checking...", 4483362458, Color3.fromRGB(255, 255, 255), false)
+local keyLabel = giveTab:CreateLabel("Key card: Checking...", 4483362458, Color3.fromRGB(255, 255, 255), false)
+
+giveTab:CreateButton({
+    Name = "Teleport to M9",
+    Callback = function()
+        if firstM9 and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPos = firstM9:IsA("Model") and firstM9:GetModelCFrame() or firstM9.CFrame
+            localPlayer.Character.HumanoidRootPart.CFrame = targetPos + Vector3.new(0, 3, 0)
+            Rayfield:Notify({
+                Title = "Teleport Success",
+                Content = "Teleported to M9!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "No M9 found on the map.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+giveTab:CreateButton({
+    Name = "Teleport to Key card",
+    Callback = function()
+        if firstKeyCard and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetPos = firstKeyCard:IsA("Model") and firstKeyCard:GetModelCFrame() or firstKeyCard.CFrame
+            localPlayer.Character.HumanoidRootPart.CFrame = targetPos + Vector3.new(0, 3, 0)
+            Rayfield:Notify({
+                Title = "Teleport Success",
+                Content = "Teleported to Key card!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "No Key card found on the map.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+-- --- TRACKER LOOP (Runs every second) ---
+task.spawn(function()
+    while true do
+        local foundM9 = {}
+        local foundKeys = {}
+        
+        -- Scanning Workspace for M9 and Key card
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name == "M9" then
+                table.insert(foundM9, obj)
+            elseif obj.Name == "Key card" then
+                table.insert(foundKeys, obj)
+            end
+        end
+        
+        -- Notification Logic
+        if notifyEnabled then
+            if #foundM9 > m9Count and #foundM9 > 0 then
+                Rayfield:Notify({
+                    Title = "Item Detected!",
+                    Content = "An M9 has been spotted on the map!",
+                    Duration = 5,
+                    Image = 4483362458,
+                })
+            end
+            if #foundKeys > keyCardCount and #foundKeys > 0 then
+                Rayfield:Notify({
+                    Title = "Item Detected!",
+                    Content = "A Key card has been spotted on the map!",
+                    Duration = 5,
+                    Image = 4483362458,
+                })
+            end
+        end
+
+        -- Update counts and references
+        m9Count = #foundM9
+        keyCardCount = #foundKeys
+        firstM9 = foundM9[1]
+        firstKeyCard = foundKeys[1]
+        
+        -- Update Labels with Status and Color
+        local m9Text = "M9: " .. m9Count .. (m9Count > 0 and " (Exist)" or " (Not found)")
+        local m9Color = m9Count > 0 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 100, 100)
+        m9Label:Set(m9Text, 4483362458, m9Color, false)
+        
+        local keyText = "Key card: " .. keyCardCount .. (keyCardCount > 0 and " (Exist)" or " (Not found)")
+        local keyColor = keyCardCount > 0 and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 100, 100)
+        keyLabel:Set(keyText, 4483362458, keyColor, false)
+        
+        task.wait(1)
+    end
+end)
+
+---------------------------------tpTab---------------------------------
+
+-- --- TELEPORT BUTTON IN GIVETAB ---
+
+tpTab:CreateSection("prisson tps")
+
+tpTab:CreateButton({
+    Name = "armory police (save)",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(803, 109, 2255) 
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+tpTab:CreateButton({
+    Name = "cell erea",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(946, 115, 2440) 
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+tpTab:CreateButton({
+    Name = "front",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(510, 99, 2294)
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+tpTab:CreateButton({
+    Name = "tower",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(817, 126, 2583)
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+tpTab:CreateSection("map")
+
+tpTab:CreateButton({
+    Name = "middel map (safeplace)",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(-343, 115, 1970)
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+tpTab:CreateButton({
+    Name = "behind crims base",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if root then
+            -- EDIT YOUR COORDINATES HERE:
+            -- Example: CFrame.new(X, Y, Z)
+            root.CFrame = CFrame.new(-984, 94, 1975)
+            
+            Rayfield:Notify({
+                Title = "suselful teleport",
+                Content = "You have been moved to the target location.",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Character or RootPart not found!",
+                Duration = 3,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+---------------------------------giveTab-------------------------------
+local Section = giveTab:CreateSection("weopens automatic give")
+
+local Button = giveTab:CreateButton({
+   Name = "give MP5",
+   Callback = function()
+            
+-- 1. Aktuelle Position des Spielers erfassen
+local player = game.Players.LocalPlayer
+local character = player.Character
+local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+if rootPart then
+    -- 2. Die jetzige Position (CFrame) in einer Variable speichern
+    local gespeichertePos = rootPart.CFrame
+    
+    -- 3. Zu den Ziel-Koordinaten teleportieren
+    rootPart.CFrame = CFrame.new(813, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(813, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(813, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(813, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(813, 103, 2229)
+    task.wait(0.1)
+    
+    -- 5. Zurück zur gespeicherten Position teleportieren
+    rootPart.CFrame = gespeichertePos
+else
+    warn("Charakter noch nicht geladen!")
+end
+            
+   end,
+})
+
+local Button = giveTab:CreateButton({
+   Name = "give Remington 870",
+   Callback = function()
+            
+-- 1. Aktuelle Position des Spielers erfassen
+local player = game.Players.LocalPlayer
+local character = player.Character
+local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+if rootPart then
+    -- 2. Die jetzige Position (CFrame) in einer Variable speichern
+    local gespeichertePos = rootPart.CFrame
+    
+    -- 3. Zu den Ziel-Koordinaten teleportieren
+    rootPart.CFrame = CFrame.new(820, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(820, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(820, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(820, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(820, 103, 2229)
+    task.wait(0.1)
+    
+    -- 5. Zurück zur gespeicherten Position teleportieren
+    rootPart.CFrame = gespeichertePos
+else
+    warn("Charakter noch nicht geladen!")
+end
+            
+   end,
+})
+
+local Button = giveTab:CreateButton({
+   Name = "give AK-74",
+   Callback = function()
+            
+-- 1. Aktuelle Position des Spielers erfassen
+local player = game.Players.LocalPlayer
+local character = player.Character
+local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+if rootPart then
+    -- 2. Die jetzige Position (CFrame) in einer Variable speichern
+    local gespeichertePos = rootPart.CFrame
+    
+    -- 3. Zu den Ziel-Koordinaten teleportieren
+    rootPart.CFrame = CFrame.new(-931, 97, 2039)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-931, 97, 2039)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-931, 97, 2039)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-931, 97, 2039)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-931, 97, 2039)
+    task.wait(0.1)
+    
+    -- 5. Zurück zur gespeicherten Position teleportieren
+    rootPart.CFrame = gespeichertePos
+else
+    warn("Charakter noch nicht geladen!")
+end
+            
+   end,
+})
+
+local Section = giveTab:CreateSection("weopens automatic give (gamepass)")
+
+local Button = giveTab:CreateButton({
+   Name = "give FAL (MAFFIA pass)",
+   Callback = function()
+            
+-- 1. Aktuelle Position des Spielers erfassen
+local player = game.Players.LocalPlayer
+local character = player.Character
+local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+if rootPart then
+    -- 2. Die jetzige Position (CFrame) in einer Variable speichern
+    local gespeichertePos = rootPart.CFrame
+    
+    -- 3. Zu den Ziel-Koordinaten teleportieren
+    rootPart.CFrame = CFrame.new(-915, 97, 2047)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-915, 97, 2047)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-915, 97, 2047)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-915, 97, 2047)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(-915, 97, 2047)
+    task.wait(0.1)
+    
+    -- 5. Zurück zur gespeicherten Position teleportieren
+    rootPart.CFrame = gespeichertePos
+else
+    warn("Charakter noch nicht geladen!")
+end
+            
+   end,
+})
+
+local Button = giveTab:CreateButton({
+   Name = "give M4A1 (SWAT PASS)",
+   Callback = function()
+            
+-- 1. Aktuelle Position des Spielers erfassen
+local player = game.Players.LocalPlayer
+local character = player.Character
+local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+if rootPart then
+    -- 2. Die jetzige Position (CFrame) in einer Variable speichern
+    local gespeichertePos = rootPart.CFrame
+    
+    -- 3. Zu den Ziel-Koordinaten teleportieren
+    rootPart.CFrame = CFrame.new(847, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(847, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(847, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(847, 103, 2229)
+    task.wait(0.1)
+    rootPart.CFrame = CFrame.new(847, 103, 2229)
+    task.wait(0.1)
+    
+    -- 5. Zurück zur gespeicherten Position teleportieren
+    rootPart.CFrame = gespeichertePos
+else
+    warn("Charakter noch nicht geladen!")
+end
+            
+   end,
+})
+
+local Section = giveTab:CreateSection("weopens tp manuel give(comming soon)")
+local Section = giveTab:CreateSection("weopens tp manuel give gamepass(comming soon)")
+
+---------------------------------plTab---------------------------------
+
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local localPlayer = players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- --- VARIABLEN ---
+local walkSpeedValue = 16
+local jumpPowerValue = 50
+local wsEnabled = false
+local infiniteJumpEnabled = false
+local tpWalkEnabled = false
+local tpWalkSpeed = 0.5
+local anchorNoclip = false -- Die neue Methode
+local flyEnabled = false
+local flySpeed = 50
+
+-- --- STEUERUNG FÜR FLY ---
+local keysPressed = {}
+userInputService.InputBegan:Connect(function(input, gpe)
+    if not gpe then keysPressed[input.KeyCode] = true end
+end)
+userInputService.InputEnded:Connect(function(input)
+    keysPressed[input.KeyCode] = false
+end)
+
+-- --- MASTER PHYSICS LOOP (Stepped) ---
+runService.Stepped:Connect(function()
+    local char = localPlayer.Character
+    if not char then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not root or not hum then return end
+
+    -- 1. ANCHOR NOCLIP (Dein Wunsch)
+    if anchorNoclip then
+        root.Anchored = true -- Verankert dich, damit Wände dich nicht stoppen
+        if hum.MoveDirection.Magnitude > 0 then
+            -- Teleportiert dich trotz Verankerung in Laufrichtung
+            root.CFrame = root.CFrame + (hum.MoveDirection * (walkSpeedValue/40))
+        end
+    else
+        -- Wenn aus, dann Entankern (außer Fly ist an)
+        if not flyEnabled then
+            root.Anchored = false
+        end
+    end
+
+    -- 2. TP WALK NOCLIP (Zusätzlich wie gewünscht)
+    if tpWalkEnabled and not anchorNoclip and hum.MoveDirection.Magnitude > 0 then
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then part.CanCollide = false end
+        end
+        root.CFrame = root.CFrame + (hum.MoveDirection * tpWalkSpeed)
+    end
+
+    -- 3. FLY LOGIK
+    if flyEnabled then
+        root.Anchored = false -- Fly braucht Physik oder manuelle Steuerung
+        local moveDir = Vector3.new(0, 0, 0)
+        if keysPressed[Enum.KeyCode.W] then moveDir = moveDir + camera.CFrame.LookVector end
+        if keysPressed[Enum.KeyCode.S] then moveDir = moveDir - camera.CFrame.LookVector end
+        if keysPressed[Enum.KeyCode.A] then moveDir = moveDir - camera.CFrame.RightVector end
+        if keysPressed[Enum.KeyCode.D] then moveDir = moveDir + camera.CFrame.RightVector end
+        if keysPressed[Enum.KeyCode.Space] then moveDir = moveDir + Vector3.new(0, 1, 0) end
+        if keysPressed[Enum.KeyCode.LeftControl] then moveDir = moveDir - Vector3.new(0, 1, 0) end
+
+        if not root:FindFirstChild("FlyVelocity") then
+            local bv = Instance.new("BodyVelocity", root)
+            bv.Name = "FlyVelocity"
+            bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            local bg = Instance.new("BodyGyro", root)
+            bg.Name = "FlyGyro"
+            bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        end
+        root.FlyVelocity.Velocity = moveDir * flySpeed
+        root.FlyGyro.CFrame = camera.CFrame
+    else
+        if root:FindFirstChild("FlyVelocity") then root.FlyVelocity:Destroy() end
+        if root:FindFirstChild("FlyGyro") then root.FlyGyro:Destroy() end
+    end
+end)
+
+-- --- REFRESH LOOP ---
+runService.RenderStepped:Connect(function()
+    local hum = localPlayer.Character and localPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        if wsEnabled then hum.WalkSpeed = walkSpeedValue end
+        if jumpPowerValue ~= 50 then
+            hum.UseJumpPower = true
+            hum.JumpPower = jumpPowerValue
+        end
+    end
+end)
+
+-- --- INFINITE JUMP ---
+userInputService.JumpRequest:Connect(function()
+    if infiniteJumpEnabled and localPlayer.Character then
+        local hum = localPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    end
+end)
+
+-- --- GUI ---
+
+plTab:CreateSection("Movement")
+
+local wsSlider = plTab:CreateSlider({
+    Name = "WalkSpeed", Range = {16, 300}, Increment = 1, Suffix = " Speed", CurrentValue = 16, Flag = "ws_pl",
+    Callback = function(v) walkSpeedValue = v wsEnabled = (v > 16) end
+})
+
+plTab:CreateButton({Name = "Reset Speed", Callback = function() wsEnabled = false wsSlider:Set(16) end})
+
+plTab:CreateSection("Noclip Methods")
+
+plTab:CreateToggle({
+    Name = "Anchor Noclip (Ghost Walk)", 
+    CurrentValue = false, 
+    Flag = "anchor_nc", 
+    Callback = function(v) anchorNoclip = v end
+})
+
+plTab:CreateToggle({
+    Name = "TP Walk Noclip", 
+    CurrentValue = false, 
+    Flag = "tp_nc", 
+    Callback = function(v) tpWalkEnabled = v end
+})
+
+plTab:CreateSection("Fly & Others")
+
+plTab:CreateToggle({Name = "Fly", CurrentValue = false, Flag = "fly_pl", Callback = function(v) flyEnabled = v end})
+
+plTab:CreateSlider({
+    Name = "Fly Speed", Range = {10, 500}, Increment = 10, Suffix = " Speed", CurrentValue = 50, Flag = "fly_speed_pl",
+    Callback = function(v) flySpeed = v end
+})
+
+plTab:CreateToggle({Name = "Infinite Jump", CurrentValue = false, Flag = "inf_j_pl", Callback = function(v) infiniteJumpEnabled = v end})
+
+
+---------------------------------stTab---------------------------------
+-------
+-- --- SPEICHER & LOGIK FÜR TÜREN ---
+local doorsStorage = {}
+local removeDoorsEnabled = false
+local doorsFolder = workspace:FindFirstChild("Doors")
+
+-- Funktion zum Verstecken einer Tür
+local function hideDoor(door)
+    if not doorsStorage[door] then
+        doorsStorage[door] = door.Parent
+        door.Parent = nil
+    end
+end
+
+-- Funktion zum Wiederherstellen aller Türen
+local function restoreDoors()
+    for door, originalParent in pairs(doorsStorage) do
+        if door then
+            door.Parent = originalParent
+        end
+    end
+    doorsStorage = {}
+end
+
+-- Automatische Überwachung (falls neue Türen spawnen)
+if doorsFolder then
+    doorsFolder.ChildAdded:Connect(function(child)
+        if removeDoorsEnabled then
+            task.wait(0.1) -- Kurz warten, bis das Objekt voll geladen ist
+            hideDoor(child)
+        end
+    end)
+end
+
+-- --- GUI ELEMENTE IN STTAB ---
+
+stTab:CreateSection("Map Manipulation")
+
+stTab:CreateToggle({
+    Name = "Remove All Doors (Client-Side)",
+    CurrentValue = false,
+    Flag = "st_remove_doors",
+    Callback = function(Value)
+        removeDoorsEnabled = Value
+        
+        if removeDoorsEnabled then
+            if doorsFolder then
+                for _, door in pairs(doorsFolder:GetChildren()) do
+                    hideDoor(door)
+                end
+                Rayfield:Notify({
+                    Title = "Doors Removed",
+                    Content = "Alle Türen wurden lokal versteckt.",
+                    Duration = 2,
+                    Image = 4483362458,
+                })
+            else
+                Rayfield:Notify({
+                    Title = "Fehler",
+                    Content = "Ordner 'Doors' nicht gefunden!",
+                    Duration = 3,
+                    Image = 4483362458,
+                })
+            end
+        else
+            restoreDoors()
+            Rayfield:Notify({
+                Title = "Doors Restored",
+                Content = "Alle Türen sind wieder da.",
+                Duration = 2,
+                Image = 4483362458,
+            })
+        end
+    end,
+})
+
+stTab:CreateButton({
+    Name = "Refresh Doors Folder",
+    Callback = function()
+        doorsFolder = workspace:FindFirstChild("Doors")
+        local status = doorsFolder and "Gefunden" or "Nicht gefunden"
+        Rayfield:Notify({
+            Title = "Status Check",
+            Content = "Ordner 'Doors': " .. status,
+            Duration = 2,
+            Image = 4483362458,
+        })
+    end,
+})
+-----
+
+
+local runService = game:GetService("RunService")
+local localPlayer = game.Players.LocalPlayer
+
+-- --- VARIABLEN FÜR DIE LOGIK ---
+local antiSlowEnabled = false
+local antiSlowMode = "Use PlayerTab Speed"
+local antiSlowSpeed = 16
+local antiSlowDelay = 1
+
+-- --- GUI ELEMENTE IN STTAB ---
+
+stTab:CreateSection("Anti-Slow / Anti-Taser")
+
+stTab:CreateToggle({
+    Name = "Enable Anti-Slow",
+    CurrentValue = false,
+    Flag = "st_antislow_toggle",
+    Callback = function(Value)
+        antiSlowEnabled = Value
+    end,
+})
+
+stTab:CreateDropdown({
+    Name = "Anti-Slow Mode",
+    Options = {"Use PlayerTab Speed", "Use Slider Speed", "Slider then PlayerTab"},
+    CurrentOption = {"Use PlayerTab Speed"},
+    MultipleOptions = false,
+    Flag = "st_antislow_mode",
+    Callback = function(Option)
+        antiSlowMode = Option[1]
+    end,
+})
+
+stTab:CreateSlider({
+    Name = "Anti-Slow Speed",
+    Range = {0, 100},
+    Increment = 1,
+    CurrentValue = 16,
+    Flag = "st_antislow_speed",
+    Callback = function(Value)
+        antiSlowSpeed = Value
+    end,
+})
+
+stTab:CreateSlider({
+    Name = "Anti-Slow Delay (Mixed Mode)",
+    Range = {0, 5},
+    Increment = 0.1,
+    CurrentValue = 1,
+    Flag = "st_antislow_delay",
+    Callback = function(Value)
+        antiSlowDelay = Value
+    end,
+})
+
+-- --- ANTI-SLOW LOGIK LOOP ---
+runService.Heartbeat:Connect(function()
+    if not antiSlowEnabled then return end
+    
+    local char = localPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    
+    if hum then
+        -- Wenn WalkSpeed durch einen Effekt auf 0 oder sehr niedrig gesetzt wird
+        if hum.WalkSpeed <= 0.1 then
+            
+            if antiSlowMode == "Use PlayerTab Speed" then
+                -- Nutzt den Wert, den du im Player Tab eingestellt hast
+                hum.WalkSpeed = _G.plTabSpeed or 16 
+                
+            elseif antiSlowMode == "Use Slider Speed" then
+                -- Nutzt fest den Speed vom Slider hier im stTab
+                hum.WalkSpeed = antiSlowSpeed
+                
+            elseif antiSlowMode == "Slider then PlayerTab" then
+                -- Kurzzeitig Slider Speed, dann zurück zum Player Tab Speed
+                hum.WalkSpeed = antiSlowSpeed
+                task.wait(antiSlowDelay)
+                hum.WalkSpeed = _G.plTabSpeed or 16
+            end
+            
+        end
+    end
+end)
+
+
+
+---------------------------------comTab--------------------------------
+
+local Section = comTab:CreateSection("visuel")
+
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+local localPlayer = players.LocalPlayer
+
+local espAktiv = false
+
+-- --- 1. HAUPTFUNKTION: ESP LOGIK ---
+local function createESP(player)
+    if player == localPlayer then return end
+
+    local function setupCharacter(char)
+        local root = char:WaitForChild("HumanoidRootPart", 10)
+        local hum = char:WaitForChild("Humanoid", 10)
+        if not root or not hum then return end
+
+        if root:FindFirstChild("AdminESP") then root.AdminESP:Destroy() end
+
+        -- BillboardGui
+        local bgui = Instance.new("BillboardGui")
+        bgui.Name = "AdminESP"
+        bgui.Adornee = root
+        bgui.Size = UDim2.new(4, 0, 5.5, 0)
+        bgui.AlwaysOnTop = true
+        bgui.ClipsDescendants = false -- WICHTIG: Erlaubt Anzeigen außerhalb der Box
+        bgui.ResetOnSpawn = false
+        bgui.Parent = root
+
+        -- Haupt-Rahmen
+        local box = Instance.new("Frame")
+        box.Name = "ESPBox"
+        box.Size = UDim2.new(1, 0, 1, 0)
+        box.BackgroundTransparency = 1
+        box.ClipsDescendants = false -- WICHTIG
+        box.Parent = bgui
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Thickness = 2
+        stroke.Color = player.TeamColor.Color
+        stroke.Parent = box
+
+        -- NAME & DISTANZ (In die Box verschoben für maximale Sicherheit)
+        local info = Instance.new("TextLabel")
+        info.Name = "NameDistLabel"
+        info.Size = UDim2.new(1, 0, 0.2, 0)
+        info.Position = UDim2.new(0, 0, 0, 5) -- Innerhalb der Box oben
+        info.BackgroundTransparency = 1
+        info.TextColor3 = Color3.new(1, 1, 1)
+        info.TextStrokeTransparency = 0 
+        info.TextStrokeColor3 = Color3.new(0, 0, 0)
+        info.Font = Enum.Font.GothamBold
+        info.TextScaled = true
+        info.ZIndex = 10
+        info.Parent = box
+
+        -- HP BAR HINTERGRUND (In die Box verschoben)
+        local barBack = Instance.new("Frame")
+        barBack.Name = "HealthBarBack"
+        barBack.Size = UDim2.new(0.05, 0, 0.8, 0)
+        barBack.Position = UDim2.new(0.02, 0, 0.1, 0) -- Innerhalb der Box links
+        barBack.BackgroundColor3 = Color3.new(0, 0, 0)
+        barBack.BorderSizePixel = 0
+        barBack.ZIndex = 8
+        barBack.Parent = box
+        
+        -- HP BAR FÜLLUNG
+        local barFill = Instance.new("Frame")
+        barFill.Name = "HealthBarFill"
+        barFill.Size = UDim2.new(1, 0, 1, 0)
+        barFill.BackgroundColor3 = Color3.new(0, 1, 0)
+        barFill.BorderSizePixel = 0
+        barFill.ZIndex = 9
+        barFill.Parent = barBack
+
+        -- UPDATE SCHLEIFE
+        local connection
+        connection = runService.RenderStepped:Connect(function()
+            if not espAktiv or not char.Parent or not root.Parent then
+                bgui:Destroy()
+                connection:Disconnect()
+                return
+            end
+
+            -- Text Update
+            local dist = math.floor((root.Position - localPlayer.Character.HumanoidRootPart.Position).Magnitude)
+            info.Text = player.Name .. " (" .. dist .. " studs)"
+            
+            -- HP Bar Update
+            local hp = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+            barFill.Size = UDim2.new(1, 0, hp, 0)
+            barFill.Position = UDim2.new(0, 0, 1 - hp, 0)
+            barFill.BackgroundColor3 = Color3.fromHSV(hp * 0.3, 1, 1)
+        end)
+    end
+
+    player.CharacterAdded:Connect(setupCharacter)
+    if player.Character then setupCharacter(player.Character) end
+end
+
+-- --- 2. INITIALISIERUNG ---
+players.PlayerAdded:Connect(function(player)
+    if espAktiv then createESP(player) end
+end)
+
+-- --- 3. TOGGLE ---
+local Toggle = comTab:CreateToggle({
+   Name = "ESP (Name/HP/Distanz)",
+   CurrentValue = false,
+   Flag = "esp_toggle_final",
+   Callback = function(Value)
+        espAktiv = Value
+        if espAktiv then
+            for _, p in pairs(players:GetPlayers()) do createESP(p) end
+        else
+            for _, p in pairs(players:GetPlayers()) do
+                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local gui = p.Character.HumanoidRootPart:FindFirstChild("AdminESP")
+                    if gui then gui:Destroy() end
+                end
+            end
+        end
+   end,
+})
+
+local Section = comTab:CreateSection("aim bot")
+
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local localPlayer = players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- --- VARIABLEN ---
+local aimbotEnabled = false
+local aimbotMode = "Closest"
+local fovRadius = 100
+local aimSmoothness = 0.2
+local aimKey = Enum.UserInputType.MouseButton2
+
+-- Neue Toggle-Variablen
+local wallCheck = false
+local teamCheck = false
+local deadCheck = true -- Standardmäßig an, da man selten auf Tote zielt
+
+-- --- FOV CIRCLE ---
+local fovCircle = Drawing.new("Circle")
+fovCircle.Visible = false
+fovCircle.Thickness = 1
+fovCircle.Color = Color3.fromRGB(255, 255, 255)
+fovCircle.Transparency = 0.7
+fovCircle.NumSides = 64
+
+-- --- HILFSFUNKTION: WALL CHECK ---
+local function isVisible(part)
+    if not wallCheck then return true end
+    
+    local ray = Ray.new(camera.CFrame.Position, (part.Position - camera.CFrame.Position).Unit * 500)
+    local hit, pos = workspace:FindPartOnRayWithIgnoreList(ray, {localPlayer.Character, camera})
+    
+    if hit and hit:IsDescendantOf(part.Parent) then
+        return true
+    end
+    return false
+end
+
+-- --- LOGIK: ZIEL FINDEN ---
+local function getTarget()
+    local target = nil
+    local shortestDist = math.huge
+    local mousePos = userInputService:GetMouseLocation()
+
+    for _, p in pairs(players:GetPlayers()) do
+        if p ~= localPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") then
+            
+            -- 1. Dead Check
+            if deadCheck and p.Character.Humanoid.Health <= 0 then continue end
+            
+            -- 2. Team Check
+            if teamCheck and p.Team == localPlayer.Team then continue end
+
+            local head = p.Character.Head
+            local pos, onScreen = camera:WorldToViewportPoint(head.Position)
+            
+            if onScreen then
+                -- 3. Wall Check
+                if not isVisible(head) then continue end
+
+                local screenPos = Vector2.new(pos.X, pos.Y)
+                local distToMouse = (screenPos - mousePos).Magnitude
+
+                if distToMouse <= fovRadius then
+                    if aimbotMode == "Closest" then
+                        if distToMouse < shortestDist then
+                            target = p
+                            shortestDist = distToMouse
+                        end
+                    elseif aimbotMode == "Lowest Health" then
+                        if p.Character.Humanoid.Health < shortestDist then
+                            target = p
+                            shortestDist = p.Character.Humanoid.Health
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return target
+end
+
+-- --- AIMBOT LOOP ---
+runService.RenderStepped:Connect(function()
+    fovCircle.Position = userInputService:GetMouseLocation()
+    fovCircle.Radius = fovRadius
+    fovCircle.Visible = aimbotEnabled
+
+    if aimbotEnabled and userInputService:IsMouseButtonPressed(aimKey) then
+        local target = getTarget()
+        if target and target.Character and target.Character.Head then
+            local targetPos = target.Character.Head.Position
+            local currentCF = camera.CFrame
+            local targetCF = CFrame.new(currentCF.Position, targetPos)
+            camera.CFrame = currentCF:Lerp(targetCF, aimSmoothness)
+        end
+    end
+end)
+
+-- --- GUI ELEMENTE IN COMTAB ---
+
+comTab:CreateToggle({
+    Name = "Enable Aimbot",
+    CurrentValue = false,
+    Flag = "aim_enabled",
+    Callback = function(Value) aimbotEnabled = Value end,
+})
+
+comTab:CreateToggle({
+    Name = "Wall Check",
+    CurrentValue = false,
+    Flag = "aim_wallcheck",
+    Callback = function(Value) wallCheck = Value end,
+})
+
+comTab:CreateToggle({
+    Name = "Team Check",
+    CurrentValue = false,
+    Flag = "aim_teamcheck",
+    Callback = function(Value) teamCheck = Value end,
+})
+
+comTab:CreateToggle({
+    Name = "Dead Check",
+    CurrentValue = true,
+    Flag = "aim_deadcheck",
+    Callback = function(Value) deadCheck = Value end,
+})
+
+comTab:CreateDropdown({
+    Name = "Target Mode",
+    Options = {"Closest", "Lowest Health"},
+    CurrentOption = {"Closest"},
+    MultipleOptions = false,
+    Flag = "aim_mode",
+    Callback = function(Options) aimbotMode = Options[1] end,
+})
+
+comTab:CreateSlider({
+    Name = "FOV Radius",
+    Range = {10, 800},
+    Increment = 10,
+    Suffix = " Pixels",
+    CurrentValue = 100,
+    Flag = "aim_fov",
+    Callback = function(Value) fovRadius = Value end,
+})
+
+comTab:CreateSlider({
+    Name = "Aim Smoothness",
+    Range = {1, 10},
+    Increment = 1,
+    Suffix = " (1 = Snap)",
+    CurrentValue = 2,
+    Flag = "aim_smooth",
+    Callback = function(Value) aimSmoothness = Value / 10 end,
+})
+
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+local runService = game:GetService("RunService")
+local vim = game:GetService("VirtualInputManager") -- Zum Simulieren von Tastendrücken
+
+local selectedPlayerName = nil
+local killActive = false
+
+-- --- FUNKTION: SPIELER-LISTE AKTUALISIEREN ---
+local function getPlayerNames()
+    local names = {}
+    for _, p in pairs(players:GetPlayers()) do
+        if p ~= localPlayer then
+            table.insert(names, p.Name)
+        end
+    end
+    return names
+end
+
+-- --- KILL LOGIK (TP + F SPAM) ---
+task.spawn(function()
+    while true do
+        if killActive and selectedPlayerName then
+            local targetPlayer = players:FindFirstChild(selectedPlayerName)
+            if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local myChar = localPlayer.Character
+                if myChar and myChar:FindFirstChild("HumanoidRootPart") then
+                    -- TP: 3 Studs unter den Gegner (damit man nicht feststeckt)
+                    local targetPos = targetPlayer.Character.HumanoidRootPart.CFrame
+                    myChar.HumanoidRootPart.CFrame = targetPos * CFrame.new(0, -3, 0)
+                    
+                    -- F-Taste simulieren (Spam)
+                    vim:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                    task.wait(0.05)
+                    vim:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                end
+            else
+                -- Falls Spieler geht oder stirbt, Kill ausmachen
+                killActive = false
+            end
+        end
+        task.wait(0.01) -- Schneller Loop für den TP
+    end
+end)
+
+-- --- GUI ELEMENTE ---
+comTab:CreateSection("Target Kill (TP-Melee)")
+
+local playerDropdown = comTab:CreateDropdown({
+    Name = "Select Target",
+    Options = getPlayerNames(),
+    CurrentOption = {"None"},
+    Callback = function(Option)
+        selectedPlayerName = Option[1]
+    end,
+})
+
+-- Button zum Aktualisieren der Liste
+comTab:CreateButton({
+    Name = "Refresh Player List",
+    Callback = function()
+        playerDropdown:Set(getPlayerNames())
+    end,
+})
+
+comTab:CreateToggle({
+    Name = "Kill Player (Underground TP)",
+    CurrentValue = false,
+    Callback = function(Value)
+        if not selectedPlayerName or selectedPlayerName == "None" then
+            if Value then 
+                Rayfield:Notify({Title = "Error", Content = "Please select a player first!", Duration = 3})
+                -- Hier müsste man den Toggle visuell zurücksetzen, falls Rayfield das unterstützt
+            end
+            killActive = false
+            return
+        end
+        killActive = Value
+        
+        if Value then
+            Rayfield:Notify({Title = "Attacking", Content = "Teleporting to " .. selectedPlayerName, Duration = 2})
+        end
+    end,
+})
+
+---------------------------------clientTabb----------------------------
+
+local lighting = game:GetService("Lighting")
+local runService = game:GetService("RunService")
+local localPlayer = game.Players.LocalPlayer
+
+-- --- STORAGE FOR XRAY ---
+local xrayStorage = {}
+local xrayEnabled = false
+
+-- --- ATMOSPHERE SECTION ---
+clientTab:CreateSection("Atmosphere")
+
+clientTab:CreateToggle({
+    Name = "Fullbright",
+    CurrentValue = false,
+    Flag = "cl_fullbright",
+    Callback = function(Value)
+        if Value then
+            lighting.Ambient = Color3.fromRGB(255, 255, 255)
+            lighting.Brightness = 2
+            lighting.ExposureCompensation = 1
+        else
+            lighting.Ambient = Color3.fromRGB(127, 127, 127) -- Default
+            lighting.Brightness = 1
+            lighting.ExposureCompensation = 0
+        end
+    end,
+})
+
+clientTab:CreateToggle({
+    Name = "No Fog",
+    CurrentValue = false,
+    Flag = "cl_nofog",
+    Callback = function(Value)
+        if Value then
+            lighting.FogEnd = 1000000
+        else
+            lighting.FogEnd = 1000 -- Adjust this to game default if needed
+        end
+    end,
+})
+
+-- --- VISUAL SECTION ---
+clientTab:CreateSection("Visual")
+
+clientTab:CreateSlider({
+    Name = "Field of View",
+    Range = {70, 120},
+    Increment = 1,
+    CurrentValue = 70,
+    Flag = "cl_fov",
+    Callback = function(Value)
+        workspace.CurrentCamera.FieldOfView = Value
+    end,
+})
+
+clientTab:CreateToggle({
+    Name = "X-Ray (50% Transparency)",
+    CurrentValue = false,
+    Flag = "cl_xray",
+    Callback = function(Value)
+        xrayEnabled = Value
+        if xrayEnabled then
+            for _, part in pairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") and part.Transparency == 0 then
+                    xrayStorage[part] = true
+                    part.Transparency = 0.5
+                end
+            end
+        else
+            for part, _ in pairs(xrayStorage) do
+                if part then part.Transparency = 0 end
+            end
+            xrayStorage = {}
+        end
+    end,
+})
+
+-- --- TOOLS SECTION ---
+clientTab:CreateSection("Tools")
+
+local coordsLabel = clientTab:CreateLabel("Coords: X:0 Y:0 Z:0", 4483362458)
+local showCoords = false
+
+clientTab:CreateToggle({
+    Name = "Show Coordinates",
+    CurrentValue = false,
+    Flag = "cl_coords",
+    Callback = function(Value)
+        showCoords = Value
+    end,
+})
+
+-- Update Coords Loop
+runService.RenderStepped:Connect(function()
+    if showCoords and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local pos = localPlayer.Character.HumanoidRootPart.Position
+        coordsLabel:Set(string.format("Coords: X:%.1f Y:%.1f Z:%.1f", pos.X, pos.Y, pos.Z))
+    elseif not showCoords then
+        coordsLabel:Set("Coords: Hidden")
+    end
+end)
+
+clientTab:CreateButton({
+    Name = "Give TP Tool",
+    Callback = function()
+        local tpTool = Instance.new("Tool")
+        tpTool.Name = "Teleport Tool"
+        tpTool.RequiresHandle = false
+        tpTool.Activated:Connect(function()
+            local mouse = localPlayer:GetMouse()
+            if localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                localPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+            end
+        end)
+        tpTool.Parent = localPlayer.Backpack
+        Rayfield:Notify({Title = "Tools", Content = "TP Tool added to Backpack", Duration = 3})
+    end,
+})
+
+clientTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        if localPlayer.Character and localPlayer.Character:FindFirstChild("Humanoid") then
+            localPlayer.Character.Humanoid.Health = 0
+        end
+    end,
+})
+
+---------------------------------globalTab-----------------------------
+
+local players = game:GetService("Players")
+local teleportService = game:GetService("TeleportService")
+local runService = game:GetService("RunService")
+local userInputService = game:GetService("UserInputService")
+local localPlayer = players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- --- VARIABLEN ---
+local ghostActive = false
+local ghostTargetPos = Vector3.new(-938, 97, 1915) 
+local camSpeed = 1.5
+local rotationX = 0
+local rotationY = 0
+
+-- --- SERVER UTILITIES ---
+globalTab:CreateSection("Server Utilities")
+
+globalTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        teleportService:Teleport(game.PlaceId, localPlayer)
+    end,
+})
+
+globalTab:CreateButton({
+    Name = "Server Hop",
+    Callback = function()
+        local HttpService = game:GetService("HttpService")
+        local api = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
+        local success, result = pcall(function()
+            return HttpService:JSONDecode(game:HttpGet(api))
+        end)
+        
+        if success and result.data then
+            for _, server in pairs(result.data) do
+                if server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    teleportService:TeleportToPlaceInstance(game.PlaceId, server.id)
+                    break
+                end
+            end
+        end
+    end,
+})
+
+globalTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = false,
+    Flag = "global_antiafk",
+    Callback = function(Value)
+        localPlayer.Idled:Connect(function()
+            if Value then
+                local vu = game:GetService("VirtualUser")
+                vu:Button2Down(Vector2.new(0,0), camera.CFrame)
+                task.wait(1)
+                vu:Button2Up(Vector2.new(0,0), camera.CFrame)
+            end
+        end)
+    end,
+})
+
+-- --- GHOST MODE SECTION ---
+globalTab:CreateSection("Ghost Mode")
+
+globalTab:CreateToggle({
+    Name = "Enable Ghost Mode",
+    CurrentValue = false,
+    Flag = "global_ghost_final",
+    Callback = function(Value)
+        ghostActive = Value
+        local char = localPlayer.Character
+        local root = char and char:FindFirstChild("HumanoidRootPart")
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        
+        if ghostActive and root and hum then
+            -- Initialisiere Rotation mit aktueller Kamera-Sicht
+            local look = camera.CFrame.LookVector
+            rotationX = math.atan2(-look.X, -look.Z)
+            rotationY = math.asin(look.Y)
+
+            camera.CameraType = Enum.CameraType.Scriptable
+            root.CFrame = CFrame.new(ghostTargetPos)
+            task.wait(0.1)
+            root.Anchored = true
+            
+            Rayfield:Notify({Title = "Ghost Mode", Content = "Use WASD to fly, Right-Click to look!", Duration = 4})
+        elseif not ghostActive and root then
+            -- RESET
+            root.Anchored = false
+            root.CFrame = camera.CFrame
+            
+            camera.CameraType = Enum.CameraType.Custom
+            camera.CameraSubject = hum
+            userInputService.MouseBehavior = Enum.MouseBehavior.Default
+            
+            Rayfield:Notify({Title = "Ghost Mode", Content = "Camera & Character Restored!", Duration = 4})
+        end
+    end,
+})
+
+globalTab:CreateSlider({
+    Name = "Ghost Camera Speed",
+    Range = {0.5, 5},
+    Increment = 0.1,
+    CurrentValue = 1.5,
+    Callback = function(Value)
+        camSpeed = Value
+    end,
+})
+
+-- --- GHOST CONTROLS LOOP ---
+runService.RenderStepped:Connect(function()
+    if ghostActive then
+        -- Rechtsklick Logik zum Umsehen
+        if userInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then
+            userInputService.MouseBehavior = Enum.MouseBehavior.LockCurrentPosition
+            local delta = userInputService:GetMouseDelta()
+            rotationX = rotationX - delta.X * 0.005
+            rotationY = math.clamp(rotationY - delta.Y * 0.005, -math.rad(80), math.rad(80))
+        else
+            userInputService.MouseBehavior = Enum.MouseBehavior.Default
+        end
+        
+        -- Kamera-Rotation berechnen
+        camera.CFrame = CFrame.new(camera.CFrame.Position) * CFrame.Angles(0, rotationX, 0) * CFrame.Angles(rotationY, 0, 0)
+
+        -- Bewegung
+        local moveDir = Vector3.new(0,0,0)
+        if userInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camera.CFrame.LookVector end
+        if userInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camera.CFrame.LookVector end
+        if userInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camera.CFrame.RightVector end
+        if userInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camera.CFrame.RightVector end
+        if userInputService:IsKeyDown(Enum.KeyCode.E) then moveDir = moveDir + Vector3.new(0, 1, 0) end
+        if userInputService:IsKeyDown(Enum.KeyCode.Q) then moveDir = moveDir - Vector3.new(0, 1, 0) end
+        
+        camera.CFrame = camera.CFrame + (moveDir * camSpeed)
+    end
+end)
+
+local network = settings().Network
+local blinkEnabled = false
+local autoSyncEnabled = false
+local blinkIntensity = 10 -- Standardwert
+
+-- --- FUNKTION: SYNC STEUERUNG ---
+local function setNetworkLag(state)
+    if state then
+        network.IncomingReplicationLag = blinkIntensity
+    else
+        network.IncomingReplicationLag = 0
+    end
+end
+
+-- --- AUTO-SYNC LOGIK (BEIM SCHIESSEN) ---
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+    if processed or not (blinkEnabled and autoSyncEnabled) then return end
+    
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        setNetworkLag(false) 
+        task.wait(0.2) -- Etwas längeres Fenster für den 10-Sekunden-Fix
+        if blinkEnabled then
+            setNetworkLag(true)
+        end
+    end
+end)
+
+-- --- GUI ELEMENTE ---
+globalTab:CreateSection("Network Blink V2 (Stability Fix)(work not perfect)")
+
+globalTab:CreateToggle({
+    Name = "Enable Blink",
+    CurrentValue = false,
+    Callback = function(Value)
+        blinkEnabled = Value
+        setNetworkLag(Value)
+    end,
+})
+
+globalTab:CreateToggle({
+    Name = "Auto-Sync on Shoot",
+    CurrentValue = false,
+    Callback = function(Value)
+        autoSyncEnabled = Value
+    end,
+})
+
+globalTab:CreateSlider({
+    Name = "Blink Intensity (Lag)",
+    Range = {1, 30},
+    Increment = 1,
+    CurrentValue = 10,
+    Callback = function(Value)
+        blinkIntensity = Value
+        if blinkEnabled then setNetworkLag(true) end
+    end,
+})
+
+globalTab:CreateParagraph({
+    Title = "10s Fix Info", 
+    Content = "Wenn der Server dich alle 10s teleportiert, setze die Intensity niedriger (ca. 5-8) oder klicke öfter mal die linke Maustaste, um den Timer zu resetten."
+})
+
+---------------------------------newlTab-------------------------------
