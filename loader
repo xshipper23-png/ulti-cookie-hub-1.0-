@@ -3,31 +3,35 @@ local HubName = "ulticookie script hub"
 
 -- HIER DEINE LINKS EINTRAGEN:
 local function ExecuteNormal()
-    --loadstring(game:HttpGet("----"))()
+    -- loadstring(game:HttpGet("DEIN_LINK"))()
     print("loading hub (TIER 1)")
 end
 
 local function ExecuteVersionPlus()
-    --loadstring(game:HttpGet("----",true))()
+    -- loadstring(game:HttpGet("DEIN_LINK",true))()
     print("Version+ is loading (tier 2)")
 end
 
 local function ExecutePremium()
+    -- Premium Link ist aktiv
     loadstring(game:HttpGet("https://raw.githubusercontent.com/xshipper23-png/ulti-cookie-hub-1.0-/refs/heads/main/hup%20premium",true))()
     print("Premium (Tier 3)")
 end
 
--- INFO-TEXTE FÜR DIE NOTES (Hier kannst du Werbung machen!)
+-- INFO-TEXTE (Backslashes korrigiert zu /)
 local Notes = {
-    ["NORMAL"] = "free for all\basics funktion\bad version of main funktions\\",
-    
-    ["VERSION +"] = "advances system\more funktions\better working\up to date\need key aces",
-    
-    ["PREMIUM"] = "advances system\more funktions\kill all anti cheat bypass\working perfect\always up to date\need key acces"
+    ["NORMAL"] = "free for all / basics funktion / bad version of main funktions",
+    ["VERSION +"] = "advances system / more funktions / better working / up to date / need key aces",
+    ["PREMIUM"] = "advances system / more funktions / kill all anti cheat bypass / working perfect / always up to date / need key acces"
 }
 
 -- [[ GUI CODE ]] --
 local ScreenGui = Instance.new("ScreenGui")
+-- Sicherere Methode für Exploits:
+local CoreGui = game:GetService("CoreGui")
+ScreenGui.Parent = (gethui and gethui()) or CoreGui
+ScreenGui.Name = "CustomHubV2"
+
 local MainFrame = Instance.new("Frame")
 local TitleLabel = Instance.new("TextLabel")
 local StartBtn = Instance.new("TextButton")
@@ -37,15 +41,12 @@ local NoteFrame = Instance.new("Frame")
 local NoteLabel = Instance.new("TextLabel")
 local NoteTitle = Instance.new("TextLabel")
 
-ScreenGui.Parent = game.CoreGui
-ScreenGui.Name = "CustomHubV2"
-
--- Hauptfenster (Breiter gemacht für Notes)
+-- Hauptfenster
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
-MainFrame.Size = UDim2.new(0, 450, 0, 320) -- Breite von 250 auf 450 erhöht
+MainFrame.Size = UDim2.new(0, 450, 0, 320)
 MainFrame.Active = true
 MainFrame.Draggable = true
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
@@ -59,7 +60,7 @@ TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TitleLabel.TextSize = 22
 TitleLabel.Font = Enum.Font.GothamBold
 
--- Button Halter (Links)
+-- Button Halter
 ButtonHolder.Parent = MainFrame
 ButtonHolder.Size = UDim2.new(0, 180, 0, 180)
 ButtonHolder.Position = UDim2.new(0, 15, 0, 60)
@@ -68,7 +69,7 @@ ButtonHolder.BackgroundTransparency = 1
 UIListLayout.Parent = ButtonHolder
 UIListLayout.Padding = UDim.new(0, 10)
 
--- Note Frame (Rechts)
+-- Note Frame
 NoteFrame.Parent = MainFrame
 NoteFrame.Size = UDim2.new(0, 225, 0, 180)
 NoteFrame.Position = UDim2.new(0, 210, 0, 60)
@@ -97,7 +98,6 @@ NoteLabel.BackgroundTransparency = 1
 
 local selectedTier = "None"
 
--- Funktion zum Erstellen der Tier-Buttons
 local function CreateTierButton(name, color)
     local btn = Instance.new("TextButton")
     btn.Name = name .. "Btn"
@@ -112,18 +112,15 @@ local function CreateTierButton(name, color)
     
     local stroke = Instance.new("UIStroke", btn)
     stroke.Thickness = 2
-    stroke.Color = Color3.fromRGB(0, 255, 120)
+    stroke.Color = color
     stroke.Enabled = false
     
     btn.MouseButton1Click:Connect(function()
         selectedTier = name
-        
-        -- Update Info Text
         NoteLabel.Text = Notes[name]
         NoteTitle.Text = name .. " INFO"
         NoteTitle.TextColor3 = color
         
-        -- Rahmen Logik
         for _, child in pairs(ButtonHolder:GetChildren()) do
             if child:IsA("TextButton") and child:FindFirstChild("UIStroke") then
                 child.UIStroke.Enabled = false
@@ -131,7 +128,6 @@ local function CreateTierButton(name, color)
         end
         stroke.Enabled = true
     end)
-    
     return btn
 end
 
@@ -139,7 +135,6 @@ local NormalBtn = CreateTierButton("NORMAL", Color3.fromRGB(200, 200, 200))
 local VersionPlusBtn = CreateTierButton("VERSION +", Color3.fromRGB(0, 170, 255))
 local PremiumBtn = CreateTierButton("PREMIUM", Color3.fromRGB(255, 215, 0))
 
--- Start Button
 StartBtn.Parent = MainFrame
 StartBtn.Size = UDim2.new(1, -30, 0, 50)
 StartBtn.Position = UDim2.new(0, 15, 1, -65)
@@ -150,7 +145,6 @@ StartBtn.Font = Enum.Font.GothamBold
 StartBtn.TextSize = 16
 Instance.new("UICorner", StartBtn)
 
--- Execution
 StartBtn.MouseButton1Click:Connect(function()
     if selectedTier == "NORMAL" then
         ExecuteNormal()
