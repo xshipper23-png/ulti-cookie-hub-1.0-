@@ -3,7 +3,7 @@ local HubName = "ulticookie script hub"
 
 -- HIER DEINE LINKS EINTRAGEN:
 local function ExecuteNormal()
-    loadstring(game:HttpGet("---))()
+    --loadstring(game:HttpGet("---"))()
     print("loading hub (TIER 1)")
 end
 
@@ -13,7 +13,7 @@ local function ExecuteVersionPlus()
 end
 
 local function ExecutePremium()
-    --loadstring(game:HttpGet("https://raw.githubusercontent.com/xshipper23-png/ulti-cookie-hub-1.0-/refs/heads/main/hup%20premium",true))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/xshipper23-png/ulti-cookie-hub-1.0-/refs/heads/main/hup%20premium",true))()
     print("Premium (Tier 3)")
 end
 
