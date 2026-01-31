@@ -3,12 +3,12 @@ local HubName = "ulticookie script hub"
 
 -- HIER DEINE LINKS EINTRAGEN:
 local function ExecuteNormal()
-    --loadstring(game:HttpGet("---"))()
+    --loadstring(game:HttpGet("----"))()
     print("loading hub (TIER 1)")
 end
 
 local function ExecuteVersionPlus()
-    --loadstring(game:HttpGet("---",true))()
+    --loadstring(game:HttpGet("----",true))()
     print("Version+ is loading (tier 2)")
 end
 
